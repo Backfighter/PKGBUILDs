@@ -1,0 +1,235 @@
+# vim:set ts=2 sw=2 et:
+# $Id$
+# Maintainer: Peter Werner <peter.wr@protonmail.com>
+
+buildarch=4
+pkgbase=kodi-xu3
+pkgname=('kodi-xu3' 'kodi-xu3-eventclients' 'kodi-xu3-tools-texturepacker' 'kodi-xu3-dev')
+_codename=Leia
+pkgver=18.4
+_tag=$pkgver-$_codename
+pkgrel=1
+arch=('armv7h')
+url="http://kodi.tv"
+license=('GPL2')
+makedepends=(
+  'afpfs-ng' 'bluez-libs' 'cmake' 'curl' 'doxygen' 'glew'
+  'gperf' 'hicolor-icon-theme' 'java-runtime' 'libaacs' 'libass'
+  'libbluray' 'libcdio' 'libcec' 'odroid-libgl' 'mariadb-libs' 'libmicrohttpd'
+  'libmodplug' 'libmpeg2' 'libnfs' 'libplist' 'libpulse' 'libva'
+  'libvdpau' 'libxrandr' 'libxslt' 'lirc' 'lzo' 'nasm'
+  'libinput' 'libxkbcommon'
+  'python2-pycryptodomex' 'python2-pillow' 'python2-pybluez' 'python2-simplejson'
+  'shairplay' 'smbclient' 'taglib' 'tinyxml' 'swig'
+  'mesa' 'ffmpeg' 'flatbuffers' 'fmt' 'rapidjson' 
+  # gl4es allows to use opengl for kodi.
+  'gl4es'
+  # fstrcmp requires ps2pdf at build time. 
+  # See https://github.com/xbmc/xbmc/issues/15989
+  'ghostscript'
+)
+_libdvdcss_version="1.4.2-$_codename-Beta-5"
+_libdvdnav_version="6.0.0-$_codename-Alpha-3"
+_libdvdread_version="6.0.0-$_codename-Alpha-3"
+_ffmpeg_version="4.0.4-$_codename-18.4"
+_crossguid_version="8f399e8bd4"
+source=(
+  "$pkgbase-$pkgver-$_codename.tar.gz::https://github.com/xbmc/xbmc/archive/${_tag}.tar.gz"
+  "libdvdcss-$_libdvdcss_version.tar.gz::https://github.com/xbmc/libdvdcss/archive/$_libdvdcss_version.tar.gz"
+  "libdvdnav-$_libdvdnav_version.tar.gz::https://github.com/xbmc/libdvdnav/archive/$_libdvdnav_version.tar.gz"
+  "libdvdread-$_libdvdread_version.tar.gz::https://github.com/xbmc/libdvdread/archive/$_libdvdread_version.tar.gz"
+  "ffmpeg-$_ffmpeg_version.tar.gz::https://github.com/xbmc/FFmpeg/archive/$_ffmpeg_version.tar.gz"
+  "http://mirrors.kodi.tv/build-deps/sources/crossguid-$_crossguid_version.tar.gz"
+  'kodi_permissions.conf'
+  'kodi.service'
+  'polkit.rules'
+  '99-odroid.rules')
+sha256sums=('bf2be186d8ae5b5377e43c06a538012bb9f51a0e98f8244b70a401006861d110'
+            '38816f8373e243bc5950449b4f3b18938c4e1c59348e3411e23f31db4072e40d'
+            '071e414e61b795f2ff9015b21a85fc009dde967f27780d23092643916538a57a'
+            'a30b6aa0aad0f2c505bc77948af2d5531a80b6e68112addb4c123fca24d5d3bf'
+            'e11e7594af35f36ab2711252c3d6bb106908f26605498aef4a9be2d7bc001db2'
+            '3d77d09a5df0de510aeeb940df4cb534787ddff3bb1828779753f5dfa1229d10'
+            '8c606f29aa9ec90f4c93e1751cfd4000872937e604e6ad7538b96ba29612d2f6'
+            '831527f10a473211e3491846e71977d81121c9a50e9c35a2d20209aabe9b5a01'
+            'c68ed2bd377f80b606b8815d78239b9132b479eafc1d19797cee5824debe1800'
+            '5ddf80329c9f5d054525b45f788b3405d199bfc6cf5b08c543ad29766ec27f6e')
+noextract=(
+  "libdvdcss-$_libdvdcss_version.tar.gz"
+  "libdvdnav-$_libdvdnav_version.tar.gz"
+  "libdvdread-$_libdvdread_version.tar.gz"
+  "ffmpeg-$_ffmpeg_version.tar.gz"
+  "crossguid-$_crossguid_version.tar.gz"
+)
+prepare() {
+  [[ -d kodi-build ]] && rm -rf kodi-build
+  mkdir kodi-build
+}
+
+build() {
+  cd kodi-build
+  cmake -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+    -DENABLE_EVENTCLIENTS=ON \
+    -DLIRC_DEVICE=/run/lirc/lircd \
+    -DENABLE_MFC=ON \
+    -DENABLE_OPENGL=ON \
+    -DENABLE_OPENGLES=OFF \
+    -DENABLE_PULSEAUDIO=OFF \
+    -DENABLE_VAAPI=OFF \
+    -DENABLE_VDPAU=OFF \
+    -DENABLE_X11=ON \
+    -Dlibdvdcss_URL="$srcdir/libdvdcss-$_libdvdcss_version.tar.gz" \
+    -Dlibdvdnav_URL="$srcdir/libdvdnav-$_libdvdnav_version.tar.gz" \
+    -Dlibdvdread_URL="$srcdir/libdvdread-$_libdvdread_version.tar.gz" \
+    -DCROSSGUID_URL="$srcdir/crossguid-$_crossguid_version.tar.gz" \
+    -DENABLE_INTERNAL_FSTRCMP=ON \
+    ../xbmc-"$_tag"
+  make
+  make preinstall
+}
+
+# kodi
+# components: kodi, kodi-bin
+
+package_kodi-xu3() {
+  pkgdesc="A software media player and entertainment hub for digital media (ODROID-XU4/XU3)"
+  depends=(
+    'desktop-file-utils' 'hicolor-icon-theme' 'mesa'
+    'python2' 'python2-pycryptodomex' 'python2-pillow' 'python2-simplejson'
+    'xorg-xdpyinfo' 'bluez-libs' 
+    'fribidi' 'freetype2' 'glew' 
+    'libcdio' 'libjpeg-turbo'  'libmicrohttpd' 'libpulse' 'libva'
+    'libinput' 'libxslt' 'odroid-libgl' 'libxkbcommon' 'libass'
+    'mariadb-libs' 'lcms2'
+    'lzo' 'smbclient' 'taglib' 'tinyxml'
+    'polkit' 'ffmpeg' 'flatbuffers' 'fmt' 'rapidjson'
+    'xorg-xinit' 'xorg-server'
+  )
+  optdepends=(
+    'afpfs-ng: Apple shares support'
+    'bluez: Blutooth support'
+    'python2-pybluez: Bluetooth support'
+    'libnfs: NFS shares support'
+    'libplist: AirPlay support'
+    'libcec: Pulse-Eight USB-CEC adapter support'
+    'lirc: Remote controller support'
+    'lsb-release: log distro information in crashlog'
+    'pulseaudio: PulseAudio support'
+    'shairplay: AirPlay support'
+    'unrar: Archives support (.rar)'
+    'unzip: Archives support (.zip)'
+    'upower: Display battery level'
+  )
+  install='kodi.install'
+  provides=('kodi' 'xbmc')
+  conflicts=('kodi' 'xbmc')
+  replaces=('xbmc')
+
+  _components=(
+  'kodi'
+  'kodi-bin'
+  )
+
+  cd kodi-build
+  # install eventclients
+  for _cmp in ${_components[@]}; do
+  DESTDIR="$pkgdir" /usr/bin/cmake \
+    -DCMAKE_INSTALL_COMPONENT="$_cmp" \
+     -P cmake_install.cmake
+  done
+
+  # python2 is being used
+  cd "$pkgdir"
+  grep -lR '#!.*python' * | while read file; do sed -s 's/\(#!.*python\)/\12/g' -i "$file"; done
+
+  install -Dm0644 $srcdir/kodi_permissions.conf $pkgdir/etc/tmpfiles.d/kodi_permissions.conf
+  install -Dm0644 $srcdir/kodi.service $pkgdir/usr/lib/systemd/system/kodi.service
+  install -Dm0644 $srcdir/polkit.rules $pkgdir/etc/polkit-1/rules.d/10-kodi.rules
+
+  # fix permissions necessary for accelerated video playback
+  install -Dm0644 $srcdir/99-odroid.rules $pkgdir/etc/udev/rules.d/99-odroid.rules
+}
+
+# kodi-eventclients
+# components: kodi-eventclients-common kodi-eventclients-ps3 kodi-eventclients-wiiremote kodi-eventclients-xbmc-send
+
+package_kodi-xu3-eventclients() {
+  pkgdesc="Kodi Event Clients (ODROID-XU4/XU3)"
+  provides=('kodi-eventclients')
+  conflicts=('kodi-eventclients')
+
+  _components=(
+    'kodi-eventclients-common'
+    'kodi-eventclients-ps3'
+    'kodi-eventclients-xbmc-send'
+  )
+
+  cd kodi-build
+  # install eventclients
+  for _cmp in ${_components[@]}; do
+    DESTDIR="$pkgdir" /usr/bin/cmake \
+      -DCMAKE_INSTALL_COMPONENT="$_cmp" \
+      -P cmake_install.cmake
+  done
+
+  # python2 is being used
+  cd "$pkgdir"
+  grep -lR '#!.*python' * | while read file; do sed -s 's/\(#!.*python\)/\12/g' -i "$file"; done
+}
+
+# kodi-tools-texturepacker
+# components: kodi-tools-texturepacker
+
+package_kodi-xu3-tools-texturepacker() {
+  pkgdesc="Kodi Texturepacker tool (ODROID-XU4/XU3)"
+  depends=('libpng' 'giflib' 'libjpeg-turbo' 'lzo')
+  provides=('kodi-tools-texturepacker')
+  conflicts=('kodi-tools-texturepacker')
+
+  _components=(
+    'kodi-tools-texturepacker'
+  )
+
+  cd kodi-build
+  # install eventclients
+  for _cmp in ${_components[@]}; do
+    DESTDIR="$pkgdir" /usr/bin/cmake \
+      -DCMAKE_INSTALL_COMPONENT="$_cmp" \
+      -P cmake_install.cmake
+  done
+}
+
+# kodi-dev
+# components: kodi-addon-dev kodi-audio-dev kodi-eventclients-dev kodi-game-dev kodi-inputstream-dev kodi-peripheral-dev kodi-pvr-dev kodi-screensaver-dev kodi-visualization-dev
+
+package_kodi-xu3-dev() {
+  pkgdesc="Kodi dev files (ODROID-XU4/XU3)"
+  depends=('kodi')
+  provides=('kodi-dev')
+  conflicts=('kodi-dev')
+
+  _components=(
+    'kodi-addon-dev'
+    'kodi-audio-dev'
+    'kodi-eventclients-dev'
+    'kodi-game-dev'
+    'kodi-inputstream-dev'
+    'kodi-peripheral-dev'
+    'kodi-pvr-dev'
+    'kodi-screensaver-dev'
+    'kodi-visualization-dev'
+  )
+
+  cd kodi-build
+  # install eventclients
+  for _cmp in ${_components[@]}; do
+    DESTDIR="$pkgdir" /usr/bin/cmake \
+      -DCMAKE_INSTALL_COMPONENT="$_cmp" \
+      -P cmake_install.cmake
+  done
+
+  # python2 is being used
+  cd "$pkgdir"
+  grep -lR '#!.*python' * | while read file; do sed -s 's/\(#!.*python\)/\12/g' -i "$file"; done
+}
