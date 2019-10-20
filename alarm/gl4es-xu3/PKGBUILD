@@ -1,0 +1,41 @@
+# vim:set ts=2 sw=2 et:
+# $Id$
+# Maintainer: Peter Werner <peter.wr@protonmail.com>
+
+buildarch=4
+pkgname='gl4es-xu3'
+pkgver=1.1.2
+pkgrel=1
+provides=('gl4es')
+conflicts=('gl4es')
+arch=('armv7h')
+url="https://ptitseb.github.io/gl4es/"
+license=('MIT')
+source=(
+  "$pkgname-$pkgver.tar.gz::https://github.com/ptitSeb/gl4es/archive/v${pkgver}.tar.gz"
+  'gl4es.conf'
+)
+sha256sums=('0774a1d0500c3a5d4da2d8cf3054ce4780a53cd20fe607024e1ceb38823f195e'
+            '2502a6421a5d912149e7e4bb976f7f17b463cde4ec19278b5f741d419f5a9cb4')
+prepare() {
+  [[ -d build ]] && rm -rf build
+  mkdir build
+}
+
+build() {
+  cd build
+
+  cmake -DODROID=1 \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    LIBGL_SRGB=1 \
+    ../gl4es-$pkgver
+
+  make
+}
+
+package() {
+  pkgdesc="A OpenGL 2.1/1.5 to GL ES 2.0/1.1 translation library (ODROID-XU4/XU3)"
+
+  install -Dm0755 $srcdir/build/lib/libGL.so.1 $pkgdir/usr/lib/gl4es/libGL.so.1
+  install -Dm0644 $srcdir/gl4es.conf $pkgdir/etc/ld.so.conf.d/gl4es.conf
+}
