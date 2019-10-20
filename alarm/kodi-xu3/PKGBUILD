@@ -71,14 +71,11 @@ build() {
   cmake -DCMAKE_INSTALL_PREFIX=/usr \
     -DCMAKE_INSTALL_LIBDIR=/usr/lib \
     -DENABLE_EVENTCLIENTS=ON \
-    -DLIRC_DEVICE=/run/lirc/lircd \
-    -DENABLE_MFC=ON \
     -DENABLE_OPENGL=ON \
     -DENABLE_OPENGLES=OFF \
     -DENABLE_PULSEAUDIO=OFF \
     -DENABLE_VAAPI=OFF \
     -DENABLE_VDPAU=OFF \
-    -DENABLE_X11=ON \
     -Dlibdvdcss_URL="$srcdir/libdvdcss-$_libdvdcss_version.tar.gz" \
     -Dlibdvdnav_URL="$srcdir/libdvdnav-$_libdvdnav_version.tar.gz" \
     -Dlibdvdread_URL="$srcdir/libdvdread-$_libdvdread_version.tar.gz" \
